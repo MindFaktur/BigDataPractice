@@ -1,0 +1,99 @@
+1) 
+a) create table AgentLoggingReport
+=> create table agent_logging
+    > (
+    > id int, agent_name string, agent_date string, login_time string, logout_time string, duration string
+    > )
+    > row format delimited
+    > fields terminated by ","
+    > stored as textfile tblproperties ("skip.header.line.count"="1");
+b) create table for AgentPerformance
+=>  create table agent_performance
+    > (
+    > id int, date_field string,  name string, total_chats int, avg_resp_time string, avg_res_time string, avg_rating float, total_feedback int
+    > )
+    > row format delimited
+    > fields terminated by ","
+    > stored as textfile tblproperties("skip.header.line.count"="1");
+
+
+2) 
+a)load data for agent_logging
+=> load data local inpath "/home/cloudera/Desktop/AgentLogingReport.csv" into table agent_logging;
+
+b) load data for agent_logging
+=> load data local inpath "/home/cloudera/Desktop/AgentPerformance.csv" into table agent_performance;
+
+3) List all agent names
+=> select name from agent_logging;
+
+4) find average rating for agent
+=>  select name, avg(avg_rating) as average_rating from agent_performance where total_chats > 0 group by name;
+
+=> output:
+name	average_rating
+Aditya Shinde	4.500833352406819
+Aditya_iot 	4.138823537265553
+Ameya Jain	4.43933334350586
+
+5) Calculate total working days for agent
+=>  select agent_name, count(distinct agent_date) as total_work_days from agent_logging group by agent_name order by agent_name desc;
+=> output:
+agent_name	total_work_days
+Zeeshan	9
+Wasim	9
+Tarun	1
+Swati	4
+Suraj S Bilgi	2
+
+6) total query that each agent has taken
+=>  select name, sum(total_chats) as total_queries from agent_performance group by name order by total_queries desc;
+=> output:
+name	total_queries
+Hrisikesh Neogi	578
+Nandani Gupta	560
+
+7) Total feedback that each agent have received.
+=> select name, sum(total_feedback) as grand_total_feedback from agent_performance group by name order by grand_total_feedback desc
+=> output:
+name	grand_total_feedback
+Hrisikesh Neogi	367
+Mithun S	364
+Maitry 	347
+
+8) Agent name who have average rating between 3.5 to 4
+=> select name, avg(avg_rating) as average_rating from agent_performance where total_chats > 0  group by name having (average_rating >=3.5 and average_rating <=4) limit 10;
+=> output:
+name	average_rating
+Mithun S	3.931666705343458
+Shivan K	3.874545465816151
+
+9) Agent name who have average rating less than 3.5
+=> hive> select name, avg(avg_rating) as average_rating from agent_performance where total_chats > 0  group by name having (average_rating <=3.5) limit 10;
+=> output:
+name	average_rating
+Anirudh 	2.7642857006617954
+Ankitjha 	2.6666666666666665
+Anurag Tiwari	2.75
+Ashad Nasim	2.5
+Dibyanshu 	0.0
+
+10) Agent name who have average rating more than 4.5
+=>hive> select name, avg(avg_rating) as average_rating from agent_performance where total_chats > 0  group by name having (average_rating >= 4.5);
+=>output:
+name	average_rating
+Aditya Shinde	4.500833352406819
+Aravind 	4.674285752432687
+Bharath 	4.711052618528667
+
+11) How many feedback agents have received more than 4.5 average
+=> select name, count(total_feedback) as feedback_stats from agent_performance where avg_rating >= 4.5 group by name order by feedback_stats desc limit 10;
+=> output:
+name	feedback_stats
+Bharath 	17
+Shivananda Sonwane	17
+Khushboo Priya	14
+Ishawant Kumar	13
+Jaydeep Dixit	13
+
+
